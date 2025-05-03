@@ -3,6 +3,8 @@ curl --request POST \
   --header 'Content-Type: application/json' \
   --data '{
     "username": "newuser",
-    "password": "securepassword123"
+    "password": "securepassword123",
+    "email": "zecapagodinho@gmail.com"
     }'
 
+// source ./requests/examples/POST_Register_User.sh

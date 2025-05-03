@@ -1,62 +1,71 @@
-import bcrypt from 'bcrypt';
-import User from '../models/User.js';
-import jwt from 'jsonwebtoken';
+import User from '../models/User.js'; 
+import * as userService from '../services/user.service.js'; 
 
 const register = async (req, res) => {
-    console.log("Registering user", req.body);
+    try {
+        if (!req.body || !req.body.username || !req.body.password || !req.body.email) {
+            return res.status(400).json({ message: "Username, email and password are required" });
+        }
 
-if( !req.body || !req.body.username || !req.body.password) {
-    return res.status(400).json({message: "Username and password are required"});
-}
-    const { username, password } = req.body;
+        const result = await userService.registerUser(req.body);
+        
+        if (!result.success) {
+            return res.status(400).json({ message: result.message });
+        }
 
-const salt = await bcrypt.genSalt(10);  
-const hashedPassword = await bcrypt.hash(password, salt);
-
-
-try {
-    const savedUser = await User.create({
-        username,
-        password: hashedPassword
-    });
-    console.log("Saved user",savedUser );
-    return res.status(200).json({message: "User registered successfully"});
-} catch (error) {
-    console.error("Error saving user:", error);
-    return res.status(500).json({message: "Error saving user"});
-}
-
+        return res.status(201).json({
+            message: "User registered successfully",
+            user: result.data
+        });
+    } catch (error) {
+        console.error("Controller error in register:", error);
+        
+        if (error.code === 11000) {
+            return res.status(400).json({ message: "Username or email already exists" });
+        }
+        
+        return res.status(500).json({ message: "Error registering user" });
+    }
 };
 
 const login = async (req, res) => {
-console.log("Logging in user", req.body);
+    try {
+        if (!req.body || !req.body.username || !req.body.password) {
+            return res.status(400).json({ message: "Username and password are required" });
+        }
 
-if( !req.body || !req.body.username || !req.body.password) {
-    return res.status(400).json({message: "Username and password are required"});
-}
-const { username, password } = req.body;
+        const result = await userService.loginUser(req.body);
+        
+        if (!result.success) {
+            return res.status(400).json({ message: result.message });
+        }
 
-try {
-    const user = await User.findOne({ username }).select('+password');
-    if (!user) {
-        console.log("User not found", username);
-      return res.status(400).json({ message: 'User not found' });
+        return res.status(200).json({
+            message: "Login successful",
+            token: result.data.token,
+            user: result.data.user
+        });
+    } catch (error) {
+        console.error("Controller error in login:", error);
+        return res.status(500).json({ message: "Error logging in user" });
     }
-  
-    const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match", isMatch);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-  console.log("User logged in sucessfully", user.username);
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    return res.status(200).json({ message: 'Login successful', token });
-  } catch (error) {
-    console.error("Error logging in user:", error);
-    return res.status(500).json({ message: `Error logging in user: ${error}` });
-  }
-  
-}
-  export default { register, login };
-  
+};
 
+const getProfile = async (req, res) => {
+    try {
+        const result = await userService.getUserById(req.userId);
+        
+        if (!result.success) {
+            return res.status(404).json({ message: result.message });
+        }
+
+        return res.status(200).json({
+            user: result.data
+        });
+    } catch (error) {
+        console.error("Controller error in getProfile:", error);
+        return res.status(500).json({ message: "Error getting user profile" });
+    }
+};
+
+export default { register, login, getProfile };
