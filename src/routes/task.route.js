@@ -11,5 +11,6 @@ router.get('/:id', taskController.getById);
 router.put('/:id', taskController.update);
 router.patch('/:id', taskController.update);
 router.delete('/:id', taskController.remove);
+router.patch('/:id/toggle', taskController.toggleCompletion); 
 
 export default router;
