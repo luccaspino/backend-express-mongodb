@@ -48,4 +48,28 @@ const remove = async (req, res) => {
   }
 };
 
-export default { create, getAll, getById, update, remove };
+const toggleCompletion = async (req, res) => {
+  try {
+    const updated = await taskService.toggleTaskCompletion(
+      req.params.id, 
+      req.userId
+    );
+    
+    if (!updated) {
+      return res.status(404).json({ message: 'Tarefa não encontrada.' });
+    }
+    
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao alternar status da tarefa.' });
+  }
+};
+
+export default { 
+  create, 
+  getAll, 
+  getById, 
+  update, 
+  remove,
+  toggleCompletion
+};
