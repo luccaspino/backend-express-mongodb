@@ -14,7 +14,8 @@ db.connect();
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Seu frontend
+  origin: 'http://localhost:5173',
+  'https://fullmongo.luccaspino.tech',// Seu frontend
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
