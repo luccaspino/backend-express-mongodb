@@ -27,7 +27,7 @@ const connect = async () => {
   } catch (error) {
     cached.promise = null;
     console.error("MongoDB connection error:", error);
-    process.exit(1);
+    throw error; 
   }
 
   return cached.conn;
